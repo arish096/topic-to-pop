@@ -35,8 +35,8 @@ Requirements:
 - Dramatic lighting and depth
 - A compelling focal subject (person, object, or scene related to the topic) with expressive emotion if applicable
 - Clean composition optimized for small previews
-- Professional YouTube thumbnail aesthetic — like top creators (MrBeast, MKBHD style energy)
-- No watermarks, no logos, no YouTube UI elements`;
+- Professional, high-energy YouTube thumbnail aesthetic used by top creators
+- No watermarks, no logos, no YouTube UI elements, no real people's likenesses, no copyrighted characters`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
