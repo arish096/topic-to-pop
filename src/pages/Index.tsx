@@ -1,13 +1,27 @@
 import { useState } from "react";
-import { Loader2, Download, Sparkles, Youtube, Wand2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Loader2, Download, Sparkles, Youtube, Wand2, LogOut, ImageIcon, Zap, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+import showcase1 from "@/assets/showcase-1.jpg";
+import showcase2 from "@/assets/showcase-2.jpg";
+import showcase3 from "@/assets/showcase-3.jpg";
 
 const STYLES = [
   { value: "bold-modern", label: "Bold & Modern" },
@@ -18,14 +32,33 @@ const STYLES = [
   { value: "vlog-lifestyle", label: "Vlog / Lifestyle" },
 ];
 
+const SHOWCASE = [
+  { src: showcase1, label: "Challenge / Vlog" },
+  { src: showcase2, label: "Tech Review" },
+  { src: showcase3, label: "Travel" },
+];
+
 const Index = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading, signOut } = useAuth();
+
   const [topic, setTopic] = useState("");
   const [context, setContext] = useState("");
   const [style, setStyle] = useState("bold-modern");
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
 
+  const initials = (user?.user_metadata?.display_name || user?.email || "U")
+    .toString()
+    .split(/[\s@]/)[0]
+    .slice(0, 2)
+    .toUpperCase();
+
   const handleGenerate = async () => {
+    if (!user) {
+      navigate("/auth");
+      return;
+    }
     if (!topic.trim()) {
       toast.error("Please enter a video topic");
       return;
@@ -60,50 +93,166 @@ const Index = () => {
     document.body.removeChild(link);
   };
 
+  const scrollToGenerator = () => {
+    document.getElementById("generator")?.scrollIntoView({ behavior: "smooth" });
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="border-b border-border/50 backdrop-blur-sm sticky top-0 z-10 bg-background/80">
-        <div className="container flex items-center justify-between py-4">
+      <header className="sticky top-0 z-20 backdrop-blur-xl bg-background/70 border-b border-border/40">
+        <div className="container flex items-center justify-between py-3.5">
           <div className="flex items-center gap-2">
             <div className="bg-gradient-primary rounded-lg p-1.5 shadow-glow">
               <Youtube className="h-5 w-5 text-primary-foreground" strokeWidth={2.5} />
             </div>
             <span className="font-bold text-lg tracking-tight">ThumbForge</span>
           </div>
-          <div className="text-xs text-muted-foreground hidden sm:flex items-center gap-1.5">
-            <Sparkles className="h-3.5 w-3.5 text-primary" />
-            AI-powered thumbnails
+
+          <div className="flex items-center gap-2">
+            {authLoading ? null : user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="flex items-center gap-2 rounded-full border border-border/60 bg-card/60 hover:bg-card transition-colors pl-1 pr-3 py-1">
+                    <Avatar className="h-7 w-7">
+                      <AvatarImage src={user.user_metadata?.avatar_url} />
+                      <AvatarFallback className="bg-gradient-primary text-primary-foreground text-xs font-semibold">
+                        {initials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium hidden sm:inline max-w-[120px] truncate">
+                      {user.user_metadata?.display_name || user.email?.split("@")[0]}
+                    </span>
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="font-normal">
+                    <p className="text-sm font-medium">{user.user_metadata?.display_name || "Creator"}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => signOut()} className="text-destructive focus:text-destructive">
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <>
+                <Button variant="ghost" size="sm" onClick={() => navigate("/auth")}>
+                  Sign in
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => navigate("/auth")}
+                  className="bg-gradient-primary hover:opacity-90 text-primary-foreground font-semibold shadow-glow"
+                >
+                  Get started
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <section className="relative bg-gradient-hero">
-        <div className="container py-16 md:py-24 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full border border-border bg-card/50 px-4 py-1.5 text-xs font-medium text-muted-foreground mb-6">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-hero" />
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 h-[420px] w-[820px] max-w-full bg-primary/10 blur-3xl rounded-full" />
+
+        <div className="container relative pt-16 pb-12 md:pt-24 md:pb-16 text-center">
+          <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary mb-6">
             <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
             Powered by Gemini AI
           </div>
-          <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-4">
-            YouTube Thumbnails,
+          <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-5 leading-[1.05]">
+            Click-worthy thumbnails,
             <br />
-            <span className="bg-gradient-primary bg-clip-text text-transparent">generated in seconds.</span>
+            <span className="bg-gradient-primary bg-clip-text text-transparent">in one click.</span>
           </h1>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-            Describe your video and get a click-worthy, scroll-stopping thumbnail — no design skills required.
+          <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto mb-8">
+            Describe your video — get a scroll-stopping, HD YouTube thumbnail in seconds. No design skills needed.
           </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
+            <Button
+              size="lg"
+              onClick={() => (user ? scrollToGenerator() : navigate("/auth"))}
+              className="bg-gradient-primary hover:opacity-90 text-primary-foreground font-semibold shadow-glow h-12 px-8 text-base"
+            >
+              <Wand2 className="mr-2 h-4 w-4" />
+              {user ? "Start creating" : "Get started — it's free"}
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={scrollToGenerator}
+              className="h-12 px-6 text-base bg-card/40 backdrop-blur"
+            >
+              See examples
+            </Button>
+          </div>
+
+          {/* Showcase grid */}
+          <div className="relative max-w-5xl mx-auto">
+            <div className="grid grid-cols-3 gap-3 sm:gap-4">
+              {SHOWCASE.map((s, i) => (
+                <div
+                  key={i}
+                  className={`group relative aspect-video overflow-hidden rounded-xl border border-border/60 shadow-card transition-all duration-500 hover:scale-[1.03] hover:shadow-glow ${
+                    i === 1 ? "translate-y-0 sm:-translate-y-6" : "translate-y-2 sm:translate-y-2"
+                  }`}
+                >
+                  <img
+                    src={s.src}
+                    alt={`${s.label} YouTube thumbnail example`}
+                    width={1280}
+                    height={736}
+                    loading={i === 0 ? "eager" : "lazy"}
+                    className="h-full w-full object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-3">
+                    <span className="text-xs font-semibold text-white">{s.label}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="container py-12 md:py-16">
+        <div className="grid sm:grid-cols-3 gap-4 max-w-5xl mx-auto">
+          {[
+            { icon: Zap, title: "Lightning fast", desc: "Generate in under 10 seconds." },
+            { icon: Palette, title: "6 visual styles", desc: "From cinematic to playful — match your brand." },
+            { icon: ImageIcon, title: "HD ready", desc: "1280×720 PNG, perfect for YouTube." },
+          ].map(({ icon: Icon, title, desc }) => (
+            <div
+              key={title}
+              className="rounded-2xl border border-border/60 bg-card/40 backdrop-blur p-5 hover:border-primary/30 transition-colors"
+            >
+              <div className="inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary mb-3">
+                <Icon className="h-5 w-5" />
+              </div>
+              <h3 className="font-semibold mb-1">{title}</h3>
+              <p className="text-sm text-muted-foreground">{desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
       {/* Generator */}
-      <section className="container pb-24">
-        <div className="grid gap-8 lg:grid-cols-5">
-          {/* Form */}
-          <Card className="lg:col-span-2 p-6 md:p-8 bg-card/60 border-border/60 backdrop-blur">
-            <h2 className="text-xl font-bold mb-1">Create your thumbnail</h2>
-            <p className="text-sm text-muted-foreground mb-6">Tell us about your video.</p>
+      <section id="generator" className="container pb-24 scroll-mt-20">
+        <div className="text-center mb-8">
+          <h2 className="text-3xl md:text-4xl font-bold tracking-tight mb-2">Create your thumbnail</h2>
+          <p className="text-muted-foreground">Tell us about your video and let the AI do the rest.</p>
+        </div>
 
+        <div className="grid gap-6 lg:grid-cols-5 max-w-6xl mx-auto">
+          {/* Form */}
+          <Card className="lg:col-span-2 p-6 md:p-7 bg-card/60 border-border/60 backdrop-blur">
             <div className="space-y-5">
               <div className="space-y-2">
                 <Label htmlFor="topic">Video topic *</Label>
@@ -147,13 +296,18 @@ const Index = () => {
 
               <Button
                 onClick={handleGenerate}
-                disabled={loading || !topic.trim()}
+                disabled={loading || (user ? !topic.trim() : false)}
                 className="w-full bg-gradient-primary hover:opacity-90 text-primary-foreground font-semibold shadow-glow h-12 text-base"
               >
                 {loading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Generating...
+                  </>
+                ) : !user ? (
+                  <>
+                    <Sparkles className="mr-2 h-4 w-4" />
+                    Sign in to generate
                   </>
                 ) : (
                   <>
@@ -169,7 +323,7 @@ const Index = () => {
           <div className="lg:col-span-3">
             <Card className="p-4 md:p-6 bg-card/60 border-border/60 backdrop-blur">
               <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-bold">Preview</h2>
+                <h3 className="text-lg font-bold">Preview</h3>
                 {imageUrl && (
                   <Button onClick={handleDownload} variant="secondary" size="sm">
                     <Download className="mr-2 h-4 w-4" />
@@ -192,11 +346,7 @@ const Index = () => {
                 )}
 
                 {!loading && imageUrl && (
-                  <img
-                    src={imageUrl}
-                    alt="Generated YouTube thumbnail"
-                    className="h-full w-full object-cover"
-                  />
+                  <img src={imageUrl} alt="Generated YouTube thumbnail" className="h-full w-full object-cover" />
                 )}
 
                 {!loading && !imageUrl && (
@@ -206,9 +356,7 @@ const Index = () => {
                     </div>
                     <div>
                       <p className="font-medium">Your thumbnail will appear here</p>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Fill in the form and hit generate.
-                      </p>
+                      <p className="text-sm text-muted-foreground mt-1">Fill in the form and hit generate.</p>
                     </div>
                   </div>
                 )}
@@ -235,7 +383,7 @@ const Index = () => {
         </div>
       </section>
 
-      <footer className="border-t border-border/50 py-6">
+      <footer className="border-t border-border/40 py-6">
         <div className="container text-center text-xs text-muted-foreground">
           ThumbForge · Not affiliated with YouTube · Built with Lovable
         </div>
