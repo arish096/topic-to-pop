@@ -74,10 +74,30 @@ Requirements:
 
     const data = await response.json();
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const upstreamError = data.choices?.[0]?.error;
 
     if (!imageUrl) {
-      const textReply = data.choices?.[0]?.message?.content;
       console.error("No image in response. Full payload:", JSON.stringify(data).slice(0, 1500));
+
+      // Detect upstream rate limit / quota errors embedded in the SSE stream
+      const upstreamCode = upstreamError?.code;
+      const upstreamType = upstreamError?.metadata?.error_type;
+
+      if (upstreamCode === 429 || upstreamType === "rate_limit_exceeded") {
+        return new Response(
+          JSON.stringify({ error: "The image model is rate-limited right now. Please wait a moment and try again." }),
+          { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      if (upstreamCode === 402) {
+        return new Response(
+          JSON.stringify({ error: "AI credits exhausted. Please add credits to your workspace." }),
+          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      const textReply = data.choices?.[0]?.message?.content;
       return new Response(
         JSON.stringify({
           error:
