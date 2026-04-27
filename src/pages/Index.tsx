@@ -157,8 +157,7 @@ const Index = () => {
 
       {/* Hero */}
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero" />
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 h-[420px] w-[820px] max-w-full bg-primary/10 blur-3xl rounded-full" />
+        <div className="absolute inset-0 bg-gradient-hero pointer-events-none" />
 
         <div className="container relative pt-16 pb-12 md:pt-24 md:pb-16 text-center">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-xs font-medium text-primary mb-6">
