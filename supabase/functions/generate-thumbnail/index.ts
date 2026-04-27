@@ -35,8 +35,8 @@ Requirements:
 - Dramatic lighting and depth
 - A compelling focal subject (person, object, or scene related to the topic) with expressive emotion if applicable
 - Clean composition optimized for small previews
-- Professional YouTube thumbnail aesthetic — like top creators (MrBeast, MKBHD style energy)
-- No watermarks, no logos, no YouTube UI elements`;
+- Professional, high-energy YouTube thumbnail aesthetic used by top creators
+- No watermarks, no logos, no YouTube UI elements, no real people's likenesses, no copyrighted characters`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -76,10 +76,17 @@ Requirements:
     const imageUrl = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
     if (!imageUrl) {
-      return new Response(JSON.stringify({ error: "No image returned" }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const textReply = data.choices?.[0]?.message?.content;
+      console.error("No image in response. Full payload:", JSON.stringify(data).slice(0, 1500));
+      return new Response(
+        JSON.stringify({
+          error:
+            typeof textReply === "string" && textReply.trim()
+              ? `Image not generated: ${textReply.slice(0, 240)}`
+              : "The AI couldn't generate an image for this prompt. Try rephrasing your topic or context (avoid real names, brands, or copyrighted material).",
+        }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     return new Response(JSON.stringify({ imageUrl }), {
