@@ -117,7 +117,7 @@
 
 @layer utilities {
   .bg-gradient-primary {
-    background: var(--gradient-primary);
+    background-image: var(--gradient-primary);
   }
   .bg-gradient-hero {
     background: var(--gradient-hero);
