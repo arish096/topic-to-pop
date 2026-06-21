@@ -167,7 +167,7 @@ const Index = () => {
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-extrabold tracking-tight mb-5 leading-[1.05]">
             Click-worthy thumbnails,
             <br />
-            <span className="bg-gradient-primary bg-clip-text text-secondary-foreground bg-primary-foreground border-primary-foreground">in one click.</span>
+            <span className="bg-gradient-primary bg-clip-text text-transparent">in one click.</span>
           </h1>
           <p className="text-muted-foreground text-base sm:text-lg max-w-2xl mx-auto mb-8">
             Describe your video — get a scroll-stopping, HD YouTube thumbnail in seconds. No design skills needed.
